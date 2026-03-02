@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Certificates / private keys — do NOT commit
+*.pem
+*.key
+*.crt
+*.p12

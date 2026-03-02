@@ -1,0 +1,48 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "BTicino Classe 100X — SIP Credentials",
+        "description": "Enter the SIP account details obtained from the provisioning script.",
+        "data": {
+          "sip_uri":      "SIP URI  (e.g. {example_uri})",
+          "sip_password": "SIP Password",
+          "dtmf_command": "Door-open DTMF command (default: #)"
+        }
+      },
+      "certificates": {
+        "title": "BTicino Classe 100X — mTLS Certificate Paths",
+        "description": "Enter the **full paths** to the PEM files on your Home Assistant instance (e.g. `/config/bticino_certs/client.cert.pem`). Copy the three files there first via Samba, SCP, or the File Editor add-on.",
+        "data": {
+          "client_cert": "Client Certificate — full path to .pem file",
+          "client_key":  "Private Key — full path to .pem file",
+          "ca_cert":     "CA Certificate — full path to .pem file"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to vdesip.bs.iotleg.com:5228. Check that the certificate is valid and not expired.",
+      "invalid_cert":   "Invalid certificate or key. Check the file contents are valid PEM.",
+      "file_not_found": "One or more files not found. Check the paths are correct and accessible from Home Assistant.",
+      "unknown":        "Unexpected error. Check the Home Assistant logs for details."
+    },
+    "abort": {
+      "already_configured": "BTicino Classe 100X is already configured."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "doorbell": {
+        "name": "Doorbell",
+        "state": {
+          "on":  "Ringing",
+          "off": "Idle"
+        }
+      }
+    },
+    "button": {
+      "open_door":    { "name": "Open Door"   },
+      "reject_call":  { "name": "Reject Call" }
+    }
+  }
+}

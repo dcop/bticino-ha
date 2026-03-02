@@ -1,0 +1,12 @@
+{
+  "domain": "bticino_c100x",
+  "name": "BTicino Classe 100X",
+  "version": "1.0.0",
+  "documentation": "https://github.com/YOUR_REPO/ha-bticino-c100x",
+  "issue_tracker": "https://github.com/YOUR_REPO/ha-bticino-c100x/issues",
+  "codeowners": [],
+  "requirements": [],
+  "dependencies": [],
+  "config_flow": true,
+  "iot_class": "cloud_push"
+}
