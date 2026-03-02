@@ -12,7 +12,7 @@
       },
       "certificates": {
         "title": "BTicino Classe 100X — mTLS Certificate Paths",
-        "description": "Enter the **full paths** to the PEM files on your Home Assistant instance (e.g. `/config/bticino_certs/client.cert.pem`). Copy the three files there first via Samba, SCP, or the File Editor add-on.",
+        "description": "Enter the paths to the PEM files. HA config dir: `{config_dir}` — e.g. `{config_dir}/bticino_c100x/client.cert.pem`. Relative paths are resolved from the config dir.",
         "data": {
           "client_cert": "Client Certificate — full path to .pem file",
           "client_key":  "Private Key — full path to .pem file",

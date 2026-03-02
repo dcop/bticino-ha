@@ -89,7 +89,7 @@ class BticinoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.debug("Cert paths: %s | %s | %s", cert_path, key_path, ca_path)
 
             # Validate the certificate/key paths and build a valid TLS context
-            cert_error = await self.hass.async_add_executor_job(
+            cert_error, bad_path = await self.hass.async_add_executor_job(
                 _validate_certs, cert_path, key_path, ca_path,
             )
             if cert_error:
@@ -119,31 +119,34 @@ class BticinoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="certificates",
             data_schema=STEP_CERT_SCHEMA,
             errors=errors,
+            description_placeholders={
+                "config_dir": self.hass.config.config_dir,
+            },
         )
 
 
 # ── Validation helpers (run in executor — blocking I/O) ────────────────────────
 
-def _validate_certs(cert_path: str, key_path: str, ca_path: str) -> str | None:
+def _validate_certs(cert_path: str, key_path: str, ca_path: str) -> tuple[str, str] | tuple[None, None]:
     """
     Check that the cert/key/CA files exist and form a valid TLS context.
-    Returns None on success, or an error key string on failure.
+    Returns (None, None) on success, or (error_key, bad_path) on failure.
     """
     try:
         for p in (cert_path, key_path, ca_path):
             if not os.path.isfile(p):
                 _LOGGER.error("Certificate file not found: %s", p)
-                return "file_not_found"
+                return "file_not_found", p
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         ctx.load_cert_chain(cert_path, key_path)
         ctx.load_verify_locations(cafile=ca_path)
-        return None
+        return None, None
     except ssl.SSLError as exc:
         _LOGGER.error("Certificate validation failed: %s", exc)
-        return "invalid_cert"
+        return "invalid_cert", cert_path
     except Exception as exc:
         _LOGGER.error("Unexpected cert error: %s", exc)
-        return "invalid_cert"
+        return "invalid_cert", cert_path
 
 
 async def _test_sip_connection(
