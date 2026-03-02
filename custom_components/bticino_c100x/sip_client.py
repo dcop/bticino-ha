@@ -212,12 +212,17 @@ class BticinoSIPClient:
     async def _connect_and_run(self) -> None:
         import ssl as _ssl
 
-        ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
-        ctx.load_cert_chain(self._cert_path, self._key_path)
-        ctx.load_verify_locations(cafile=self._ca_path)
-        ctx.check_hostname = False
-        ctx.verify_mode = _ssl.CERT_OPTIONAL
-        ctx.minimum_version = _ssl.TLSVersion.TLSv1_2
+        def _build_ssl_ctx() -> "_ssl.SSLContext":
+            c = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
+            c.load_cert_chain(self._cert_path, self._key_path)
+            c.load_verify_locations(cafile=self._ca_path)
+            c.check_hostname = False
+            c.verify_mode = _ssl.CERT_OPTIONAL
+            c.minimum_version = _ssl.TLSVersion.TLSv1_2
+            return c
+
+        loop = asyncio.get_running_loop()
+        ctx = await loop.run_in_executor(None, _build_ssl_ctx)
 
         _LOGGER.info("Connecting to %s:%d", SIP_HOST, SIP_PORT)
         self._reader, self._writer = await asyncio.open_connection(
