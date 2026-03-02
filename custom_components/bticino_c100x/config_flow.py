@@ -77,23 +77,34 @@ class BticinoConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            config_dir = self.hass.config.config_dir
+
+            def _resolve(p: str) -> str:
+                """Accept absolute paths or paths relative to the HA config dir."""
+                return p if os.path.isabs(p) else os.path.join(config_dir, p)
+
+            cert_path = _resolve(user_input[CONF_CLIENT_CERT])
+            key_path  = _resolve(user_input[CONF_CLIENT_KEY])
+            ca_path   = _resolve(user_input[CONF_CA_CERT])
+            _LOGGER.debug("Cert paths: %s | %s | %s", cert_path, key_path, ca_path)
+
             # Validate the certificate/key paths and build a valid TLS context
             cert_error = await self.hass.async_add_executor_job(
-                _validate_certs,
-                user_input[CONF_CLIENT_CERT],
-                user_input[CONF_CLIENT_KEY],
-                user_input[CONF_CA_CERT],
+                _validate_certs, cert_path, key_path, ca_path,
             )
             if cert_error:
                 errors["base"] = cert_error
             else:
-                self._data.update(user_input)
+                # Store resolved absolute paths
+                self._data.update({
+                    **user_input,
+                    CONF_CLIENT_CERT: cert_path,
+                    CONF_CLIENT_KEY:  key_path,
+                    CONF_CA_CERT:     ca_path,
+                })
                 # Test actual SIP connection
                 conn_ok = await _test_sip_connection(
-                    self.hass,
-                    user_input[CONF_CLIENT_CERT],
-                    user_input[CONF_CLIENT_KEY],
-                    user_input[CONF_CA_CERT],
+                    self.hass, cert_path, key_path, ca_path,
                 )
                 if not conn_ok:
                     errors["base"] = "cannot_connect"
