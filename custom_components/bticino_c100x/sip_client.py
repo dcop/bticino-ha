@@ -205,9 +205,25 @@ class BticinoSIPClient:
                 break
             except Exception as exc:
                 _LOGGER.error("SIP error: %s — retry in %ds", exc, delay)
+            finally:
+                # Connection dropped — end any calls that were still ringing
                 self._registered = False
-                await asyncio.sleep(delay)
-                delay = min(delay * 2, 120)
+                self._end_pending_calls()
+            if not self._running:
+                break
+            await asyncio.sleep(delay)
+            delay = min(delay * 2, 120)
+
+    def _end_pending_calls(self) -> None:
+        """Notify coordinator of any calls that ended due to connection loss."""
+        for cid in list(self._dialogs):
+            _LOGGER.info("Clearing call %s due to connection reset", cid)
+            if self.on_call_ended:
+                try:
+                    self.on_call_ended(cid)
+                except Exception as exc:
+                    _LOGGER.error("on_call_ended error: %s", exc)
+        self._dialogs.clear()
 
     async def _connect_and_run(self) -> None:
         import ssl as _ssl
